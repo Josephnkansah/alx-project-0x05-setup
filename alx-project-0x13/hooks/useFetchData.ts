@@ -8,10 +8,40 @@ const useFetchData = <T, R>() => {
   const [generatedImages, setGeneratedImages] = useState<ImageProps[]>([]);
 
   const fetchData = async (endpoint: string, body: R) => {
-    ...
-  };
+    setIsLoading(true);
+    setError(null);
+    try {
+      const resp = await fetch(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
 
-  return { isLoading, responseData, error, fetchData, generatedImages };
-};
+      if (!resp.ok)
+      {
+        throw new Error('Failed to fetch data');
+      }
+
+      const result = await resp.json()
+      setResponseData(result)
+      setGeneratedImages((prev) => [...prev, { imageUrl: result?.message, prompt: body?.prompt }])
+        } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return {
+    isLoading,
+    responseData,
+    error,
+    fetchData,
+    generatedImages
+  }
+}
+
 
 export default useFetchData;
